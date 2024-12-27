@@ -84,7 +84,7 @@ const Vecpattern = struct {
 };
 
 fn randomBytesFixedPattern(seed: u64) anyerror!void {
-    var default_rand = std.rand.DefaultPrng.init(seed);
+    var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
     const pattern = comptime zigscan.maskgen.fromIda("E8 ? ? ? ? E8 ? ? ? ? 48 85 C0 74 ? 48 89 C7 48 8B 9E");
@@ -105,7 +105,7 @@ fn randomBytesFixedPattern(seed: u64) anyerror!void {
 }
 
 fn zeroedBytesFixedPattern(seed: u64) anyerror!void {
-    var default_rand = std.rand.DefaultPrng.init(seed);
+    var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
     const pattern = comptime zigscan.maskgen.fromIda("E8 ? ? ? ? E8 ? ? ? ? 48 85 C0 74 ? 48 89 C7 48 8B 9E");
@@ -122,7 +122,7 @@ fn zeroedBytesFixedPattern(seed: u64) anyerror!void {
 }
 
 fn firstMatchFixedPattern(seed: u64) anyerror!void {
-    var default_rand = std.rand.DefaultPrng.init(seed);
+    var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
     const pattern = comptime zigscan.maskgen.fromIda("E8 ? ? ? ? E8 ? ? ? ? 48 85 C0 74 ? 48 89 C7 48 8B 9E");
@@ -139,7 +139,7 @@ fn firstMatchFixedPattern(seed: u64) anyerror!void {
 }
 
 fn firstMatchNoWildcard(seed: u64) anyerror!void {
-    var default_rand = std.rand.DefaultPrng.init(seed);
+    var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
     const pattern = comptime zigscan.maskgen.fromIda("E8 E9 48 85 C0 74 48 89 C7 48 8B 9E");
