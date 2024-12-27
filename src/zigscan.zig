@@ -152,7 +152,7 @@ fn scanRawMaskMatchUnalignedSmall(bytes: []const u8, comptime mask_match: anytyp
 test "unaligned sigscans" {
     const template = [_]u8{ 0x13, 0x37, 0x13, 0x00, 0x12, 0x34, 0x56, 0x78, 0xAA };
     for (0..@sizeOf(vecpattern.VecType)) |offs| {
-        const bytes align(@alignOf(vecpattern.VecType)) = std.mem.zeroes([@sizeOf(vecpattern.VecType) + template.len - 1]u8);
+        var bytes align(@alignOf(vecpattern.VecType)) = std.mem.zeroes([@sizeOf(vecpattern.VecType) + template.len - 1]u8);
         @memcpy(bytes[offs..][0..template.len], template[0..]);
         try testScanIda(bytes[offs..], scanIdaUnaligned);
         try testScanIda(bytes[offs..], scanIdaUnalignedSmall);
