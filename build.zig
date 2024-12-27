@@ -26,7 +26,10 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     _ = b.addModule("zigscan", .{
-        .root_source_file = .{ .cwd_relative = "src/zigscan.zig" },
+        .root_source_file = .{ .src_path = .{
+            .owner = b,
+            .sub_path = "src/zigscan.zig",
+        } },
     });
 
     const target = b.standardTargetOptions(.{});
@@ -34,13 +37,19 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "bench",
-        .root_source_file = .{ .cwd_relative = "src/bench.zig" },
+        .root_source_file = .{ .src_path = .{
+            .owner = b,
+            .sub_path = "src/bench.zig",
+        } },
         .target = target,
         .optimize = optimize,
     });
 
     const tests = b.addTest(.{
-        .root_source_file = .{ .cwd_relative = "src/zigscan.zig" },
+        .root_source_file = .{ .src_path = .{
+            .owner = b,
+            .sub_path = "src/zigscan.zig",
+        } },
         .target = target,
         .optimize = optimize,
     });
