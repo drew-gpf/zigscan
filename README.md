@@ -10,16 +10,17 @@ const zigscan = @import("zigscan");
 pub fn main() !void {
     var bytes: [16]u8 = undefined;
     @memset(bytes[0..], 0xEE);
-    bytes[14] = std.crypto.random.int(u8);
+    bytes[13] = std.crypto.random.int(u8);
+    bytes[14] = 0xFF;
     bytes[15] = 0xFF;
 
-    std.debug.print("0x{X}\n", .{zigscan.scanIdaUnaligned(bytes[0..], "EE ?? FF").?});
+    std.debug.print("0x{X}\n", .{zigscan.scanIdaUnaligned(bytes[0..], "EE ?? FF FF").?});
 }
 ```
 
 ```cmd
 C:\test> .\test.exe
-0xD
+0xC
 ```
 
 To get an idea of performance, you can run synthetic benchmarks using ``zig build run -Doptimize=ReleaseFast``.
