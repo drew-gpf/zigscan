@@ -101,14 +101,14 @@ fn toBytePattern(comptime pattern: []const u8) [countPatternBytes(pattern)]?u8 {
         // we know that all tokens are a normal length.
         var was_opt = false;
 
-        for (token) |char| {
+        for (token, 0..) |char, idx| {
             const is_opt = char == '?';
             const is_hex_digit = std.ascii.isHex(char);
 
             if (is_hex_digit) {
                 if (was_opt) @compileLog("Invalid token in pattern after optional indicator", char, token, pattern);
             } else {
-                if (!is_opt) @compileLog("Invalid token in pattern", char, token, pattern);
+                if (!is_opt or (idx > 0 and !was_opt)) @compileLog("Invalid token in pattern", char, token, pattern);
             }
 
             was_opt = is_opt;
