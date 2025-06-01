@@ -175,6 +175,10 @@ test "zero" {
     try std.testing.expectEqual(null, scanIda(buf[0 .. buf.len / 2], "00 " ** @sizeOf(vecpattern.VecType)));
 }
 
+test "bench tests" {
+    _ = @import("bench.zig");
+}
+
 fn testScanIda(bytes: []const u8, comptime scanner: anytype) !void {
     try std.testing.expectEqual(0, scanner(bytes, "13"));
     try std.testing.expectEqual(0, scanner(bytes, "13 37 13"));

@@ -92,7 +92,7 @@ fn randomBytesFixedPattern(seed: u64) anyerror!void {
     const max_search = 512 << 20;
     const idx = random.intRangeAtMost(usize, 512 << 10, max_search - pattern.mask.len);
 
-    const bytes = try std.heap.page_allocator.alignedAlloc(u8, @alignOf(zigscan.vecpattern.VecType), idx + pattern.mask.len + 1024);
+    const bytes = try std.heap.page_allocator.alignedAlloc(u8, toAlignEnum(@alignOf(zigscan.vecpattern.VecType)), idx + pattern.mask.len + 1024);
     defer std.heap.page_allocator.free(bytes);
 
     random.bytes(bytes[0..]);
@@ -112,7 +112,7 @@ fn zeroedBytesFixedPattern(seed: u64) anyerror!void {
     const search_size = 64 << 20;
     const idx = (search_size - pattern.mask.len) - random.intRangeAtMost(usize, 0, @sizeOf(zigscan.vecpattern.VecType) - 1);
 
-    const bytes = try std.heap.page_allocator.alignedAlloc(u8, @alignOf(zigscan.vecpattern.VecType), search_size);
+    const bytes = try std.heap.page_allocator.alignedAlloc(u8, toAlignEnum(@alignOf(zigscan.vecpattern.VecType)), search_size);
     defer std.heap.page_allocator.free(bytes);
 
     @memset(bytes[0..], 0);
@@ -129,7 +129,7 @@ fn firstMatchFixedPattern(seed: u64) anyerror!void {
     const search_size = 64 << 20;
     const idx = (search_size - pattern.mask.len) - random.intRangeAtMost(usize, 0, @sizeOf(zigscan.vecpattern.VecType) - 1);
 
-    const bytes = try std.heap.page_allocator.alignedAlloc(u8, @alignOf(zigscan.vecpattern.VecType), search_size);
+    const bytes = try std.heap.page_allocator.alignedAlloc(u8, toAlignEnum(@alignOf(zigscan.vecpattern.VecType)), search_size);
     defer std.heap.page_allocator.free(bytes);
 
     @memset(bytes[0..], pattern.match[0]);
@@ -146,7 +146,7 @@ fn firstMatchNoWildcard(seed: u64) anyerror!void {
     const search_size = 64 << 20;
     const idx = (search_size - pattern.mask.len) - random.intRangeAtMost(usize, 0, @sizeOf(zigscan.vecpattern.VecType) - 1);
 
-    const bytes = try std.heap.page_allocator.alignedAlloc(u8, @alignOf(zigscan.vecpattern.VecType), search_size);
+    const bytes = try std.heap.page_allocator.alignedAlloc(u8, toAlignEnum(@alignOf(zigscan.vecpattern.VecType)), search_size);
     defer std.heap.page_allocator.free(bytes);
 
     @memset(bytes[0..], pattern.match[0]);
@@ -205,4 +205,21 @@ fn printResult(
     } else {
         try writer.print("ERROR: could not find idx 0x{X}\n", .{idx});
     }
+}
+
+fn toAlignEnum(alignment: comptime_int) std.mem.Alignment {
+    return comptime std.meta.stringToEnum(std.mem.Alignment, std.fmt.comptimePrint("{}", .{alignment})) orelse {
+        @compileLog("Invalid alignment", alignment);
+        unreachable;
+    };
+}
+
+test "toAlignEnum" {
+    try std.testing.expectEqual(std.mem.Alignment.@"1", toAlignEnum(1));
+    try std.testing.expectEqual(std.mem.Alignment.@"2", toAlignEnum(2));
+    try std.testing.expectEqual(std.mem.Alignment.@"4", toAlignEnum(4));
+    try std.testing.expectEqual(std.mem.Alignment.@"8", toAlignEnum(8));
+    try std.testing.expectEqual(std.mem.Alignment.@"16", toAlignEnum(16));
+    try std.testing.expectEqual(std.mem.Alignment.@"32", toAlignEnum(32));
+    try std.testing.expectEqual(std.mem.Alignment.@"64", toAlignEnum(64));
 }
