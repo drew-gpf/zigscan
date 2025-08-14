@@ -26,11 +26,13 @@ const std = @import("std");
 const zigscan = @import("zigscan.zig");
 
 pub fn main() !void {
-    const writer = std.io.getStdOut().writer();
+    var stdout_writer = std.fs.File.stdout().writer(@as([*]u8, undefined)[0..0]);
+    const writer = &stdout_writer.interface;
+
     for (scans) |scan| {
         const seed: u64 = @bitCast(std.time.microTimestamp());
         try writer.print("\n===== {s} (seed 0x{X}) =====\n\n", .{ scan.name, seed });
-        try scan.func(seed);
+        try scan.func(seed, writer);
     }
 
     try writer.print("\n=============== DONE ===============\n", .{});
@@ -57,7 +59,7 @@ const scans = [_]Scan{
 
 const Scan = struct {
     name: []const u8,
-    func: *const fn (seed: u64) anyerror!void,
+    func: *const fn (seed: u64, writer: *std.Io.Writer) anyerror!void,
 };
 
 const Scanners = [_]type{ Sigscan, Vecpattern };
@@ -83,7 +85,7 @@ const Vecpattern = struct {
     }
 };
 
-fn randomBytesFixedPattern(seed: u64) anyerror!void {
+fn randomBytesFixedPattern(seed: u64, writer: *std.Io.Writer) anyerror!void {
     var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
@@ -101,10 +103,10 @@ fn randomBytesFixedPattern(seed: u64) anyerror!void {
         set.* |= match;
     }
 
-    try benchPattern(bytes, pattern.mask.len, pattern, idx, std.io.getStdOut().writer());
+    try benchPattern(bytes, pattern.mask.len, pattern, idx, writer);
 }
 
-fn zeroedBytesFixedPattern(seed: u64) anyerror!void {
+fn zeroedBytesFixedPattern(seed: u64, writer: *std.Io.Writer) anyerror!void {
     var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
@@ -118,10 +120,10 @@ fn zeroedBytesFixedPattern(seed: u64) anyerror!void {
     @memset(bytes[0..], 0);
     @memcpy(bytes[idx..][0..pattern.mask.len], pattern.match[0..]);
 
-    try benchPattern(bytes, pattern.mask.len, pattern, idx, std.io.getStdOut().writer());
+    try benchPattern(bytes, pattern.mask.len, pattern, idx, writer);
 }
 
-fn firstMatchFixedPattern(seed: u64) anyerror!void {
+fn firstMatchFixedPattern(seed: u64, writer: *std.Io.Writer) anyerror!void {
     var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
@@ -135,10 +137,10 @@ fn firstMatchFixedPattern(seed: u64) anyerror!void {
     @memset(bytes[0..], pattern.match[0]);
     @memcpy(bytes[idx..][0..pattern.mask.len], pattern.match[0..]);
 
-    try benchPattern(bytes, pattern.mask.len, pattern, idx, std.io.getStdOut().writer());
+    try benchPattern(bytes, pattern.mask.len, pattern, idx, writer);
 }
 
-fn firstMatchNoWildcard(seed: u64) anyerror!void {
+fn firstMatchNoWildcard(seed: u64, writer: *std.Io.Writer) anyerror!void {
     var default_rand = std.Random.DefaultPrng.init(seed);
     const random = default_rand.random();
 
@@ -152,7 +154,7 @@ fn firstMatchNoWildcard(seed: u64) anyerror!void {
     @memset(bytes[0..], pattern.match[0]);
     @memcpy(bytes[idx..][0..pattern.mask.len], pattern.match[0..]);
 
-    try benchPattern(bytes, pattern.mask.len, pattern, idx, std.io.getStdOut().writer());
+    try benchPattern(bytes, pattern.mask.len, pattern, idx, writer);
 }
 
 fn benchPattern(
@@ -160,7 +162,7 @@ fn benchPattern(
     comptime pattern_len: usize,
     comptime pattern: zigscan.maskgen.MaskAndMatch(pattern_len),
     idx: usize,
-    writer: anytype,
+    writer: *std.Io.Writer,
 ) !void {
     inline for (Scanners) |Scanner| {
         var time1 = try std.time.Timer.start();
@@ -188,7 +190,7 @@ fn printResult(
     comptime pattern: zigscan.maskgen.MaskAndMatch(pattern_len),
     idx: usize,
     result_opt: ?usize,
-    writer: anytype,
+    writer: *std.Io.Writer,
 ) !void {
     try writer.print("Finished {s} in {} ns: ", .{ name, time_ns });
     if (result_opt) |result| {

@@ -32,6 +32,8 @@ pub inline fn scanMaskAndMatch(
     comptime mask_match: maskgen.MaskAndMatch(num_mask_bytes),
 ) ?usize {
     comptime {
+        @setEvalBranchQuota(1000000);
+
         std.debug.assert(num_mask_bytes > 0);
         if (mask_match.mask[0] == 0x00) {
             @compileError("Invalid pattern begins with null mask (just slice into `bytes`)");
@@ -39,6 +41,12 @@ pub inline fn scanMaskAndMatch(
 
         if (mask_match.mask[num_mask_bytes - 1] == 0x00) {
             @compileError("Invalid mask ends with a null byte");
+        }
+
+        for (mask_match.mask[0..], mask_match.match[0..], 0..) |mask, match, i| {
+            if (mask == 0 and match != 0) {
+                @compileLog("Invalid match byte is nonzero when mask is zero (invalid wildcard, pattern will never match)", mask, match, i);
+            }
         }
     }
 

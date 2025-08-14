@@ -24,7 +24,7 @@ C:\test> .\test.exe
 ```
 
 To get an idea of performance, you can run synthetic benchmarks using ``zig build run -Doptimize=ReleaseFast``.
-The following is sample output on a Core i9-10900K, benchmarked against a naive pattern scanner in ``src/sigscan.zig``:
+The following is sample output on a Core i9-10900K w/ 3200MT/s DDR4, benchmarked against a naive pattern scanner in ``src/sigscan.zig``:
 
 ```
 ===== Random bytes, fixed pattern (average case) (seed 0x6117907BE017A) =====

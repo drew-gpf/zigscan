@@ -45,6 +45,8 @@ pub fn scanMaskAndMatch(
     };
 
     comptime {
+        @setEvalBranchQuota(1000000);
+
         std.debug.assert(num_mask_bytes > 0);
         if (S.mask[0] == 0x00 and !only_first) {
             @compileError("Invalid multi-word pattern begins with null mask (use slicing and scanUnaligned instead)");
@@ -52,6 +54,12 @@ pub fn scanMaskAndMatch(
 
         if (mask_match.mask[num_mask_bytes - 1] == 0x00) {
             @compileError("Invalid mask ends with a null byte");
+        }
+
+        for (mask_match.mask[0..], mask_match.match[0..], 0..) |mask, match, i| {
+            if (mask == 0 and match != 0) {
+                @compileLog("Invalid match byte is nonzero when mask is zero (invalid wildcard, pattern will never match)", mask, match, i);
+            }
         }
     }
 
@@ -80,6 +88,10 @@ pub fn scanMaskAndMatch(
 /// This function may return an "impossible" scan result that goes out-of-bounds of the
 /// bytes to scan. Because the buffer you give must be aligned, however, this function cannot
 /// cause a page fault from an out-of-bounds read.
+///
+/// Note that this function will assume that zeroed mask bytes have corresponding
+/// zeroed match bytes; in other words, it only checks that the mask byte is zero
+/// to determine if a pattern byte is a wildcard or not.
 pub fn scanRaw(
     comptime mask_len: comptime_int,
     comptime actual_mask_len: comptime_int,
